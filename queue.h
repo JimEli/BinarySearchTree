@@ -37,8 +37,8 @@ class Queue
 {
 private:
 	std::unique_ptr<T[]> queueElements; // Array of queue elements.
-	size_t head;                        // Elements popped from this array index.
-	size_t tail;                        // Elements pushed to this array index.
+	std::size_t head;                   // Elements popped from this array index.
+	std::size_t tail;                   // Elements pushed to this array index.
 	bool full;                          // True if queue array is full.
 
 public:
