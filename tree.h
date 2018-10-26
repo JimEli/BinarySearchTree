@@ -74,40 +74,21 @@ public:
 
 	// Non-recursive search.
 	bool find(T data) const { return find(root, data); }
-	//bool search(T data) const { return search(root, data); }
+	bool search(T data) const { return search(root, data); }
 	// Iterative in-order search.
-	bool search(T data) const { return iterativeInorderSearch(root, data); }
+	bool iSearch(T data) const { return iInorderSearch(root, data); }
 
 	// Dfs traversals (recursive).
 	void inOrder() const { inOrder(root); }
 	void preOrder() const { preOrder(root); }
 	void postOrder() const { postOrder(root); }
-	
+	// Dfs traversals (iterative).
+	void iInorder() const { iInorder(root); }
+	void iPreorder() const { iPreorder(root); }
+	void iPostorder() const { iPostorder(root); }
+
 	// Bfs traversal (top down, left to right).
-	void bfs()
-	{
-		Queue<std::shared_ptr<Node>> q;
-		std::shared_ptr<Node> node = root;
-
-		if (node != nullptr)
-		{
-			q.enqueue(node);
-
-			while (!q.empty())
-			{
-				node = q.front();
-				q.dequeue();
-
-				std::cout << node->data << " ";
-
-				if (node->left != nullptr)
-					q.enqueue(node->left);
-
-				if (node->right != nullptr)
-					q.enqueue(node->right);
-			}
-		}
-	}
+	void bfs() const { bfs(root); }
 
 private:
 	// Tree root node.
@@ -120,6 +101,20 @@ private:
 			node = std::make_shared<Node>(data);
 		else
 			data < node->data ? add(node->left, data) : add(node->right, data);
+	}
+
+	// Find first occurance of data in tree.
+	bool find(std::shared_ptr<Node> node, T &data) const
+	{
+		if (!node)
+			return false;
+		else
+		{
+			if (node->data == data)
+				return true;
+
+			return find(node->left, data) || find(node->right, data);
+		}
 	}
 
 	// Non-recursive search.
@@ -135,18 +130,43 @@ private:
 		return false;
 	}
 
-	// Find first occurance of data in tree.
-	bool find(std::shared_ptr<Node> node, T &data) const
+	// Iterative in-order search using a stack.
+	bool iInorderSearch(std::shared_ptr<Node> p, T target) const
 	{
-		if (!node)
-			return false;
-		else
+		Stack<std::shared_ptr<Node>> stack;
+
+		while (p != nullptr)
 		{
-			if (node->data == data)
+			while (p != nullptr)
+			{                                // stack the right child (if any)
+				if (p->right)                // and the node itself when going
+					stack.push(p->right);    // to the left;
+				stack.push(p);
+				p = p->left;
+			}
+
+			p = stack.pop();                 // pop a node with no left child
+
+			while (!stack.empty() && p->right == nullptr)
+			{                                // with no right child;
+				std::cout << p->data << " "; // visit it and all nodes
+				if (p->data == target)
+					return true;
+				p = stack.pop();
+			}
+
+			std::cout << p->data << " ";     // visit also the first node with
+
+			if (p->data == target)
 				return true;
 
-			return find(node->left, data) || find(node->right, data);
+			if (!stack.empty())              // a right child (if any);
+				p = stack.pop();
+			else
+				p = nullptr;
 		}
+
+		return false;
 	}
 
 	// Return minimum value of either child nodes.
@@ -230,7 +250,7 @@ private:
 		if (node->right)
 			preOrder(node->right);
 	}
-	
+
 	void postOrder(const std::shared_ptr<Node> node) const
 	{
 		if (node->left)
@@ -242,44 +262,106 @@ private:
 		std::cout << node->data << " ";
 	}
 
-	// Iterative in-order search using a stack.
-	bool iterativeInorderSearch(std::shared_ptr<Node> p, T target) const
+	// Iterative in-order traversal.
+	void iInorder(std::shared_ptr<Node> p) const
 	{
 		Stack<std::shared_ptr<Node>> stack;
 
-		while (p != nullptr)
+		while (p)
 		{
-			while (p != nullptr)
-			{                                // stack the right child (if any)
-				if (p->right)                // and the node itself when going
-					stack.push(p->right);    // to the left;
+			while (p)
+			{
+				if (p->right)
+					stack.push(p->right);
 				stack.push(p);
 				p = p->left;
 			}
-
-			p = stack.pop();                 // pop a node with no left child
-
-			while (!stack.empty() && p->right == nullptr)
-			{                                // with no right child;
-				std::cout << p->data << " "; // visit it and all nodes
-				if (p->data == target)
-					return true;
+			p = stack.pop();
+			while (!stack.empty() && !p->right)
+			{
+				std::cout << p->data << " ";
 				p = stack.pop();
 			}
-
-			std::cout << p->data << " ";     // visit also the first node with
-
-			if (p->data == target)
-				return true;
-
-			if (!stack.empty())              // a right child (if any);
+			std::cout << p->data << " ";
+			if (!stack.empty())
 				p = stack.pop();
 			else
 				p = nullptr;
 		}
-
-		return false;
 	}
 
+	// Iterative preorder travesal.
+	void iPreorder(std::shared_ptr<Node> node) const
+	{
+		Stack<std::shared_ptr<Node>> stack;
+
+		if (node)
+		{
+			stack.push(node);
+
+			while (!stack.empty())
+			{
+				node = stack.pop();
+
+				std::cout << node->data << " ";
+
+				if (node->right)
+					stack.push(node->right);
+
+				if (node->left)
+					stack.push(node->left);
+			}
+		}
+	}
+
+
+	// Iterative post-order traversal.
+	void iPostorder(std::shared_ptr<Node> p) const
+	{
+		Stack<std::shared_ptr<Node>> stack;
+		std::shared_ptr<Node> q = p;
+
+		while (p)
+		{
+			for (; p->left; p = p->left)
+				stack.push(p);
+
+			while (!p->right || p->right == q)
+			{
+				std::cout << p->data << " ";
+				q = p;
+				if (stack.empty())
+					return;
+				p = stack.pop();
+			}
+			stack.push(p);
+			p = p->right;
+		}
+	}
+
+	// Bfs traversal (top down, left to right).
+	void bfs(std::shared_ptr<Node> node) const
+	{
+		Queue<std::shared_ptr<Node>> q;
+
+		if (node != nullptr)
+		{
+			q.enqueue(node);
+
+			while (!q.empty())
+			{
+				node = q.front();
+				q.dequeue();
+
+				std::cout << node->data << " ";
+
+				if (node->left != nullptr)
+					q.enqueue(node->left);
+
+				if (node->right != nullptr)
+					q.enqueue(node->right);
+			}
+		}
+	}
 };
 #endif
