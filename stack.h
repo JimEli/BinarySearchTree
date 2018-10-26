@@ -27,6 +27,10 @@ const std::size_t DEFAULT_STACK_SIZE = 16;
 template<class T, std::size_t N = DEFAULT_STACK_SIZE>
 class Stack
 {
+private:
+	std::unique_ptr<T[]> stackElements;
+	std::size_t index;
+
 public:
 	Stack() : index(0) { stackElements = std::make_unique<T[]>(N); }
 	~Stack() { }
@@ -63,10 +67,6 @@ public:
 	}
 
 	bool empty() { return (index == 0); }
-
-private:
-	std::unique_ptr<T[]> stackElements;
-	std::size_t index;
 };
 
 #endif
