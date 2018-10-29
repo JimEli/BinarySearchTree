@@ -73,10 +73,6 @@ public:
 		if (count == 0)
 			return;
 		count--;
-		//std::unique_ptr<T[]> spTemp(static_cast<T*>(data.release()));
-		//data.reset(new T[capacity]);
-		//for (std::size_t i = 0; i < count; i++)
-			//data[i] = spTemp[i];
 	};
 
 	// Size getter.
