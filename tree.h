@@ -17,11 +17,16 @@
 #ifndef _MY_TREE_H_
 #define _MY_TREE_H_
 
-#include <iostream> // cout
-#include <memory>   // shared pointers
+#include <iostream>  // cout.
+#include <memory>    // shared pointers.
+#include <algorithm> // max.
 
-#include "queue.h"  // bfs traversal
-#include "stack.h" // iterative in-order search
+#include "queue.h"   // bfs traversal.
+#include "stack.h"   // iterative in-order search.
+#include "vector.h"  // vector for building balanced tree.
+
+// Visual Leak Detector.
+#include "C:\Program Files (x86)\Visual Leak Detector\include\vld.h"
 
 template <class T>
 class Tree
@@ -33,8 +38,8 @@ private:
 		T data;                      // Node data element.
 		std::shared_ptr<Node> left;  // Left child.
 		std::shared_ptr<Node> right; // Right child.
-
-		bool isChild() const { return !left && !right; }
+		// Return true if node is leaf.
+		bool isLeaf() const { return !left && !right; }
 
 	public:
 		explicit Node(T data) : left(nullptr), right(nullptr), data(data) { }
@@ -52,31 +57,34 @@ public:
 	{
 		if (this != &rhs)
 		{
-			clean(root);
+			clear(root);
 			root = clone(rhs.root);
 		}
 		return *this;
 	}
 
-	// Internal method to clone subtree.
-	std::shared_ptr<Node> clone(std::shared_ptr<Node> t)
-	{
-		if (t == nullptr)
-			return nullptr;
-		return std::make_shared<Node>(Node(t->element, clone(t->left), clone(t->right)));
-	}
-
+	//
+	//
 	// Basic tree functionality.
+
 	void clear() { clear(root); }
-	bool isEmpty() const { return (root == nullptr); }
+	bool empty() const { return (root == nullptr); }
 	void add(T data) { add(root, data); }
 	bool remove(T data) { return remove(root, data); }
+
+	//
+	//
+	// Searches.
 
 	// Non-recursive search.
 	bool find(T data) const { return find(root, data); }
 	bool search(T data) const { return search(root, data); }
 	// Iterative in-order search.
 	bool iSearch(T data) const { return iInorderSearch(root, data); }
+
+	//
+	//
+	// Traversals.
 
 	// Dfs traversals (recursive).
 	void inOrder() const { inOrder(root); }
@@ -89,10 +97,41 @@ public:
 
 	// Bfs traversal (top down, left to right).
 	void bfs() const { bfs(root); }
+	
+	//
+	//
+	// Balancing.
+
+	// Get height of node. Used by isBalanced function.
+	int getHeight() { return getHeight(root); }
+	// Recursive check of tree balance. Returns true if tree is balanced.
+	bool isBalanced() { return isBalanced(root); }
+	// Attempt to balance tree.
+	void balance() { balanceTree(root); }
 
 private:
 	// Tree root node.
 	std::shared_ptr<Node> root;
+
+	// Internal method to clone subtree.
+	std::shared_ptr<Node> clone(std::shared_ptr<Node> t)
+	{
+		if (t == nullptr)
+			return nullptr;
+		return std::make_shared<Node>(Node(t->element, clone(t->left), clone(t->right)));
+	}
+
+	// Delete all nodes of tree.
+	void clear(std::shared_ptr<Node> &node)
+	{
+		if (node->left)
+			clear(node->left);
+
+		if (node->right)
+			clear(node->right);
+
+		node.reset(); //node.~shared_ptr();
+	}
 
 	// Add new node to tree.
 	void add(std::shared_ptr<Node> &node, T &data)
@@ -101,6 +140,54 @@ private:
 			node = std::make_shared<Node>(data);
 		else
 			data < node->data ? add(node->left, data) : add(node->right, data);
+	}
+
+	// Return minimum value of either child nodes.
+	T min(std::shared_ptr<Node> node) const
+	{
+		if (node->isLeaf())
+			return node->data;
+
+		return node->left ? min(node->left) : min(node->right);
+	}
+
+	// Remove first instance of data from tree.
+	bool remove(std::shared_ptr<Node>& node, T data)
+	{
+		if (!node)
+			return false;
+		else
+		{
+			if (node->data == data)
+			{
+				if (node->isLeaf())
+					node.reset();
+				else
+				{
+					// Does node have 2 children?
+					if (node->left && node->right)
+					{
+						T dataReplace = min(node->right);
+
+						remove(dataReplace);
+						node->data = dataReplace;
+					}
+					else
+					{
+						// 1 child.
+						std::shared_ptr<Node> tempPtr;
+
+						node->left ? tempPtr = node->left : tempPtr = node->right;
+						node.reset();   // Decrement use count.
+						node = tempPtr; // Replace with only child.
+					}
+				}
+
+				return true;
+			}
+
+			return remove(node->left, data) || remove(node->right, data);
+		}
 	}
 
 	// Find first occurance of data in tree.
@@ -167,65 +254,6 @@ private:
 		}
 
 		return false;
-	}
-
-	// Return minimum value of either child nodes.
-	T min(std::shared_ptr<Node> node) const
-	{
-		if (node->isChild())
-			return node->data;
-
-		return node->left ? min(node->left) : min(node->right);
-	}
-
-	// Remove first instance of data from tree.
-	bool remove(std::shared_ptr<Node> &node, T data)
-	{
-		if (!node)
-			return false;
-		else
-		{
-			if (node->data == data)
-			{
-				if (node->isChild())
-					node.reset();
-				else
-				{
-					// Does node have 2 children?
-					if (node->left && node->right)
-					{
-						T dataReplace = min(node->right);
-
-						remove(dataReplace);
-						node->data = dataReplace;
-					}
-					else
-					{
-						// 1 child.
-						std::shared_ptr<Node> tempPtr;
-
-						node->left ? tempPtr = node->left : tempPtr = node->right;
-						tempPtr.reset();
-					}
-				}
-
-				return true;
-			}
-
-			return remove(node->left, data) || remove(node->right, data);
-		}
-	}
-
-	// Delete all nodes of tree.
-	void clear(std::shared_ptr<Node> &node)
-	{
-		if (node->left)
-			clear(node->left);
-
-		if (node->right)
-			clear(node->right);
-
-		node.reset();
 	}
 
 	// Dfs traversals.
@@ -313,8 +341,7 @@ private:
 			}
 		}
 	}
-
-
+	
 	// Iterative post-order traversal.
 	void iPostorder(std::shared_ptr<Node> p) const
 	{
@@ -363,5 +390,111 @@ private:
 			}
 		}
 	}
+
+	// Get height of node. Used by isBalanced function.
+	static int getHeight(std::shared_ptr<Node> node)
+	{
+		return node == nullptr ? 0 : std::max(getHeight(node->left), getHeight(node->right)) + 1;
+	}
+
+	// Check if tree is balanced.
+	static bool isBalanced(std::shared_ptr<Node> node)
+	{
+		if (node == nullptr)
+			return true;
+
+		int left = getHeight(node->left);
+		int right = getHeight(node->right);
+
+		return (abs(left - right) <= 1 && isBalanced(node->left) && isBalanced(node->right));
+	}
+	/*
+	// Returns true if tree is balanced. Second parameter stores tree height.
+	// Initially, we need to pass a pointer to a location with value as 0.
+	static bool isBal(BSTNode<T>* node, int* height)
+	{
+		// lh --> Height of left and right subtrees.
+		int lh = 0, rh = 0;
+		// l will be true if left subtree is balanced, r will be true if right subtree is balanced.
+		int l = 0, r = 0;
+
+		if (node == nullptr)
+		{
+			*height = 0;
+			return 1;
+		}
+
+		// Get heights of left and right subtrees in lh and rh, store returned values in l and r.
+		l = isBal(node->left, &lh);
+		r = isBal(node->right, &rh);
+
+		// Height of current node is max of heights of left and right subtrees plus 1.
+		*height = (lh > rh ? lh : rh) + 1;
+
+		// If difference between heights of left/right subtrees is
+		// more than 2 then this node is not balanced, return 0.
+		if ((lh - rh >= 2) || (rh - lh >= 2))
+			return 0;
+		// If node is balanced & left/right subtrees are balanced, return true.
+		else
+			return (l && r);
+	}
+
+	int height(std::shared_ptr<Node> temp)
+	{
+		int h = 0;
+
+		if (temp != nullptr)
+		{
+			int l_height = height(temp->left);
+			int r_height = height(temp->right);
+			int max_height = std::max(l_height, r_height);
+
+			h = max_height + 1;
+		}
+
+		return h;
+	}
+	*/
+
+	// Balance tree helper method, builds tree from (sorted) array of data elements.
+	void buildTree(Vector<T>& data, int start, int end)
+	{
+		if (start <= end)
+		{
+			int mid = (start + end) / 2;
+
+			add(data[mid]);
+
+			buildTree(data, start, mid - 1);
+			buildTree(data, mid + 1, end);
+		}
+	}
+
+	// Balance tree helper method, constructs sorted array of tree data via inOrder traversal.
+	void makeArray(std::shared_ptr<Node> node, Vector<T>& data)
+	{
+		// Base case.
+		if (!node)
+			return;
+
+		// Store tree nodes inorder.
+		makeArray(node->left, data);
+		data.push_back(node->data);
+		makeArray(node->right, data);
+	}
+
+	// Attempt to reconstruct tree as balanced. 
+	void balanceTree(std::shared_ptr<Node> node)
+	{
+		// Store nodes in sorted order.
+		Vector<T> data;
+		makeArray(node, data);
+
+		// Reconstruct a balanced tree.
+		clear(root);
+		buildTree(data, 0, data.size() - 1);
+	}
+
 };
 #endif
