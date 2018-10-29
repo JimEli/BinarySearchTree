@@ -36,19 +36,20 @@ template<class T, std::size_t QUEUE_SIZE = DEFAULT_QUEUE_SIZE>
 class Queue
 {
 private:
-	std::unique_ptr<T[]> queueElements; // Array of queue elements.
-	std::size_t head;                   // Elements popped from this array index.
-	std::size_t tail;                   // Elements pushed to this array index.
-	bool full;                          // True if queue array is full.
+	std::unique_ptr<T[]> data; // Array of queue elements.
+	size_t head;               // Elements popped from this array index.
+	size_t tail;               // Elements pushed to this array index.
+	bool full;                 // True if queue array is full.
 
 public:
-	Queue() : head(0), tail(0), full(false) { queueElements = std::make_unique<T[]>(QUEUE_SIZE); }
+	Queue() : head(0), tail(0), full(false) { data = std::make_unique<T[]>(QUEUE_SIZE); }
+	~Queue() = default;
 
 	bool enqueue(T val)
 	{
 		if (full)                       // Check if queue full.
 			return false;
-		queueElements[tail] = val;      // Insert value into queue.
+		data[tail] = val;               // Insert value into queue.
 		tail = (tail + 1) % QUEUE_SIZE; // Increment pointer, wrap if necessary.
 		full = (tail == head);          // Queue full?
 		return true;
@@ -67,7 +68,7 @@ public:
 	{
 		if (empty())
 			throw std::out_of_range("empty queue");
-		T tmp = queueElements[head];
+		T tmp = data[head];
 		full = false;                   // Queue can not be full.
 		head = (head + 1) % QUEUE_SIZE; // Increment pointer (wrap if necessary).
 		return tmp;
@@ -81,7 +82,7 @@ public:
 		if (empty())
 			throw std::out_of_range("empty queue");
 		else
-			return queueElements[head];
+			return data[head];
 	}
 
 	T back()
@@ -89,7 +90,7 @@ public:
 		if (empty())
 			throw std::out_of_range("empty queue");
 		else
-			return queueElements[(tail ? tail - 1 : QUEUE_SIZE - 1)];
+			return data[(tail ? tail - 1 : QUEUE_SIZE - 1)];
 	}
 };
 #endif
