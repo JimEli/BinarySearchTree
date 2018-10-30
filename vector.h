@@ -67,7 +67,7 @@ public:
 		data[count++] = d;
 	};
 
-	// Adds new value, and if needed allocates more space.
+	// Decrements count, doesn't actually remove value from array.
 	void pop_back()
 	{
 		if (count == 0)
@@ -83,16 +83,16 @@ public:
 	T &operator[] (size_t i) { return data[i]; };
 
 private:
-	// Allocates double old space.
+	// Allocates double old size.
 	void resize()
 	{
 		capacity = capacity ? capacity*2 : 1;
 
-		std::unique_ptr<T[]> spTemp(static_cast<T*>(data.release()));
+		std::unique_ptr<T[]> temp(static_cast<T*>(data.release()));
 		data.reset(new T[capacity]);
-
+		// Copy old to new.
 		for (std::size_t i = 0; i < count; i++)
-			data[i] = spTemp[i];
+			data[i] = temp[i];
 	};
 };
 
