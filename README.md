@@ -6,4 +6,4 @@ Includes basic demonstration of:
 * deleting nodes
 * traversals (recursive and iterative)
 * bfs, dfs (in, pre & post-order) searching
-* includes simple implementations of static array-based stack and queue
+* includes simple implementations of static array-based stack and queue, STL-like container array wrapper, and singly linked list.
