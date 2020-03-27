@@ -13,16 +13,15 @@ int main()
 	Tree<int> myTree;
 	assert(myTree.empty());
 
-	/*
-	//      6
+/*
+	//          6
 	//	  /   \
 	//	 4     8
 	//	/ \   / \
-	// 3   5 7   9
+	//     3   5 7   9
 	myTree.add(6); // root.
 	myTree.add(4); // left child.
 	myTree.add(8); // right child.
-
 	myTree.add(3);
 	myTree.add(5);
 	myTree.add(7);
