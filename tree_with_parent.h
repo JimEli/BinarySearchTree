@@ -328,23 +328,7 @@ public:
 		// pre-increment
 		reverse_iterator& operator++ ()
 		{
-/*			if (ptr->right)
-			{
-				ptr = ptr->right;
-				while (ptr->left)
-					ptr = ptr->left;
-			}
-			else
-			{
-				std::shared_ptr<Node> before;
-
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->right);
-			}
-			return *this;
-*/			if (ptr->left)
+			if (ptr->left)
 			{
 				ptr = ptr->left;
 				while (ptr->right) {
