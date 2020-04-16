@@ -478,10 +478,11 @@ public:
 		return reverse_iterator(ptr->left);
 	}
 
-private:
+protected:
 	// Tree root node.
 	std::shared_ptr<Node> root;
 
+private:
 	// Internal method to clone subtree.
 	std::shared_ptr<Node> clone(std::shared_ptr<Node> t)
 	{
@@ -833,4 +834,5 @@ private:
 		buildTree(data, 0, data.size() - 1);
 	}
 };
+
 #endif
