@@ -185,11 +185,11 @@ public:
 		// pre-decrement
 		iterator& operator-- ()
 		{
-			if (ptr->left_child)
+			if (ptr->left)
 			{
-				ptr = ptr->left_child;
-				while (ptr->right_child) {
-					ptr = ptr->right_child;
+				ptr = ptr->left;
+				while (ptr->right) {
+					ptr = ptr->right;
 				}
 			}
 			else
@@ -198,7 +198,7 @@ public:
 				do {
 					before = ptr;
 					ptr = ptr->parent;
-				} while (ptr && before == ptr->left_child);
+				} while (ptr && before == ptr->left);
 			}
 			return *this;
 		}
@@ -243,21 +243,20 @@ public:
 		// pre-increment
 		const_iterator& operator++ ()
 		{
-			if (ptr->right_child)
+			if (ptr->right)
 			{
-				ptr = ptr->right_child;
-				while (ptr->left_child) {
-					ptr = ptr->left_child;
-				}
+				ptr = ptr->right;
+				while (ptr->left) 
+					ptr = ptr->left;
 			}
 			else
 			{
-				const std::shared_ptr<Node> before;
+				std::shared_ptr<Node> before;
 
 				do {
 					before = ptr;
 					ptr = ptr->parent;
-				} while (ptr && before == ptr->right_child);
+				} while (ptr && before == ptr->right);
 			}
 			return *this;
 		}
@@ -272,11 +271,11 @@ public:
 		// pre-decrement
 		const_iterator& operator-- ()
 		{
-			if (ptr->left_child)
+			if (ptr->left)
 			{
-				ptr = ptr->left_child;
-				while (ptr->right_child) {
-					ptr = ptr->right_child;
+				ptr = ptr->left;
+				while (ptr->right) {
+					ptr = ptr->right;
 				}
 			}
 			else
@@ -285,7 +284,7 @@ public:
 				do {
 					before = ptr;
 					ptr = ptr->parent;
-				} while (ptr && before == ptr->left_child);
+				} while (ptr && before == ptr->left);
 			}
 			return *this;
 		}
@@ -301,7 +300,7 @@ public:
 		const T* operator-> () const { return &(ptr->data); }
 
 	private:
-		std::shared_ptr<Node> const ptr;
+		std::shared_ptr<Node> ptr;
 	};
 
 
@@ -316,7 +315,7 @@ public:
 	}
 	const_iterator begin() const
 	{
-		const std::shared_ptr<Node> ptr = root;
+		std::shared_ptr<Node> ptr = root;
 
 		while (ptr->left)
 			ptr = ptr->left;
@@ -344,7 +343,7 @@ public:
 	}
 	const_iterator end() const 
 	{
-		const std::shared_ptr<Node> ptr = root;
+		std::shared_ptr<Node> ptr = root;
 
 		while (ptr->right)
 			ptr = ptr->right;
