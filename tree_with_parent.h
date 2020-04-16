@@ -303,6 +303,106 @@ public:
 		std::shared_ptr<Node> ptr;
 	};
 
+	class reverse_iterator
+	{
+		friend class tree;
+
+	public:
+		reverse_iterator() { ptr = nullptr; }
+		reverse_iterator(std::shared_ptr<Node> p) { ptr = p; }
+		reverse_iterator(const reverse_iterator& it) { ptr = it.ptr; }
+
+		reverse_iterator& operator= (const reverse_iterator& it)
+		{
+			ptr = it.ptr;
+			return *this;
+		}
+
+		bool operator== (const reverse_iterator& it) const { return ptr == it.ptr; }
+		bool operator!= (const reverse_iterator& it) const { return ptr != it.ptr; }
+		bool operator< (const reverse_iterator& it) const { return **this > * it; }
+		bool operator> (const reverse_iterator& it) const { return **this < *it; }
+		bool operator<= (const reverse_iterator& it) const { return **this >= *it; }
+		bool operator>= (const reverse_iterator& it) const { return **this <= *it; }
+
+		// pre-increment
+		reverse_iterator& operator++ ()
+		{
+/*			if (ptr->right)
+			{
+				ptr = ptr->right;
+				while (ptr->left)
+					ptr = ptr->left;
+			}
+			else
+			{
+				std::shared_ptr<Node> before;
+
+				do {
+					before = ptr;
+					ptr = ptr->parent;
+				} while (ptr && before == ptr->right);
+			}
+			return *this;
+*/			if (ptr->left)
+			{
+				ptr = ptr->left;
+				while (ptr->right) {
+					ptr = ptr->right;
+				}
+			}
+			else
+			{
+				std::shared_ptr<Node> before;
+				do {
+					before = ptr;
+					ptr = ptr->parent;
+				} while (ptr && before == ptr->left);
+			}
+			return *this;
+		}
+		// post-increment
+		reverse_iterator operator++ (int)
+		{
+			iterator old(*this);
+			--(*this);
+			return old;
+		}
+
+		// pre-decrement
+		reverse_iterator& operator-- ()
+		{
+			if (ptr->right)
+			{
+				ptr = ptr->right;
+				while (ptr->left)
+					ptr = ptr->left;
+			}
+			else
+			{
+				std::shared_ptr<Node> before;
+
+				do {
+					before = ptr;
+					ptr = ptr->parent;
+				} while (ptr && before == ptr->right);
+			}
+			return *this;
+		}
+		// post-decrement
+		reverse_iterator operator-- (int)
+		{
+			iterator old(*this);
+			++(*this);
+			return old;
+		}
+
+		T& operator* () const { return ptr->data; }
+		T* operator-> () const { return &(ptr->data); }
+
+	private:
+		std::shared_ptr<Node> ptr;
+	};
 
 	iterator begin()
 	{
@@ -331,6 +431,15 @@ public:
 
 		return const_iterator(ptr);
 	}
+	reverse_iterator rbegin()
+	{
+		std::shared_ptr<Node> ptr = root;
+
+		while (ptr->right)
+			ptr = ptr->right;
+
+		return reverse_iterator(ptr);
+	}
 
 	iterator end()
 	{
@@ -358,6 +467,15 @@ public:
 			ptr = ptr->right;
 
 		return const_iterator(ptr->right);
+	}
+	reverse_iterator rend()
+	{
+		std::shared_ptr<Node> ptr = root;
+
+		while (ptr->left)
+			ptr = ptr->left;
+
+		return reverse_iterator(ptr->left);
 	}
 
 private:
@@ -715,5 +833,4 @@ private:
 		buildTree(data, 0, data.size() - 1);
 	}
 };
-
 #endif
