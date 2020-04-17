@@ -43,7 +43,7 @@
 template <class T>
 class tree
 {
-private:
+protected:
 	struct Node
 	{
 	private:
@@ -376,7 +376,7 @@ public:
 		// post-decrement
 		reverse_iterator operator-- (int)
 		{
-			iterator old(*this);
+			reverse_iterator old(*this);
 			++(*this);
 			return old;
 		}
@@ -388,7 +388,92 @@ public:
 		std::shared_ptr<Node> ptr;
 	};
 
-	iterator begin()
+	class const_reverse_iterator
+	{
+		friend class tree;
+
+	public:
+		const_reverse_iterator() { ptr = nullptr; }
+		const_reverse_iterator(std::shared_ptr<Node> p) { ptr = p; }
+		const_reverse_iterator(const const_reverse_iterator& it) { ptr = it.ptr; }
+
+		const_reverse_iterator& operator= (const const_reverse_iterator& it)
+		{
+			ptr = it.ptr;
+			return *this;
+		}
+
+		bool operator== (const const_reverse_iterator& it) const { return ptr == it.ptr; }
+		bool operator!= (const const_reverse_iterator& it) const { return ptr != it.ptr; }
+		bool operator< (const const_reverse_iterator& it) const { return **this > * it; }
+		bool operator> (const const_reverse_iterator& it) const { return **this < *it; }
+		bool operator<= (const const_reverse_iterator& it) const { return **this >= *it; }
+		bool operator>= (const const_reverse_iterator& it) const { return **this <= *it; }
+
+		// pre-increment
+		const_reverse_iterator& operator++ ()
+		{
+			if (ptr->left)
+			{
+				ptr = ptr->left;
+				while (ptr->right) {
+					ptr = ptr->right;
+				}
+			}
+			else
+			{
+				std::shared_ptr<Node> before;
+				do {
+					before = ptr;
+					ptr = ptr->parent;
+				} while (ptr && before == ptr->left);
+			}
+			return *this;
+		}
+		// post-increment
+		const_reverse_iterator operator++ (int)
+		{
+			const_reverse_iterator old(*this);
+			--(*this);
+			return old;
+		}
+
+		// pre-decrement
+		const_reverse_iterator& operator-- ()
+		{
+			if (ptr->right)
+			{
+				ptr = ptr->right;
+				while (ptr->left)
+					ptr = ptr->left;
+			}
+			else
+			{
+				std::shared_ptr<Node> before;
+
+				do {
+					before = ptr;
+					ptr = ptr->parent;
+				} while (ptr && before == ptr->right);
+			}
+			return *this;
+		}
+		// post-decrement
+		const_reverse_iterator operator-- (int)
+		{
+			const_reverse_iterator old(*this);
+			++(*this);
+			return old;
+		}
+
+		T& operator* () const { return ptr->data; }
+		T* operator-> () const { return &(ptr->data); }
+
+	private:
+		std::shared_ptr<Node> ptr;
+	};
+
+	iterator begin() 
 	{
 		std::shared_ptr<Node> ptr = root;
 
@@ -397,25 +482,17 @@ public:
 
 		return iterator(ptr);
 	}
-	const_iterator begin() const
+	const iterator begin() const
 	{
 		std::shared_ptr<Node> ptr = root;
 
 		while (ptr->left)
 			ptr = ptr->left;
 
-		return const_iterator(ptr);
+		return iterator(ptr);
 	}
-	const_iterator cbegin() const
-	{
-		const std::shared_ptr<Node> ptr = root;
-
-		while (ptr->left)
-			ptr = ptr->left;
-
-		return const_iterator(ptr);
-	}
-	reverse_iterator rbegin()
+	const_iterator cbegin() const { return begin(); }
+	reverse_iterator rbegin() const
 	{
 		std::shared_ptr<Node> ptr = root;
 
@@ -434,24 +511,16 @@ public:
 		
 		return iterator(ptr->right); // return iterator(nullptr);
 	}
-	const_iterator end() const 
+	const iterator end() const
 	{
 		std::shared_ptr<Node> ptr = root;
 
 		while (ptr->right)
 			ptr = ptr->right;
 
-		return const_iterator(ptr->right);
+		return iterator(ptr->right);
 	}
-	const_iterator cend() const 
-	{ 
-		const std::shared_ptr<Node> ptr = root;
-
-		while (ptr->right)
-			ptr = ptr->right;
-
-		return const_iterator(ptr->right);
-	}
+	const_iterator cend() const { return end(); }
 	reverse_iterator rend()
 	{
 		std::shared_ptr<Node> ptr = root;
@@ -588,29 +657,29 @@ private:
 		while (p != nullptr)
 		{
 			while (p != nullptr)
-			{                                // stack the right child (if any)
-				if (p->right)                // and the node itself when going
-					stack.push(p->right);    // to the left;
+			{				// stack the right child (if any)
+				if (p->right)		// and the node itself when going
+					stack.push(p->right); // to the left;
 				stack.push(p);
 				p = p->left;
 			}
 
-			p = stack.pop();                 // pop a node with no left child
+			p = stack.pop();		// pop a node with no left child
 
 			while (!stack.empty() && p->right == nullptr)
-			{                                // with no right child;
+			{				// with no right child;
 				std::cout << p->data << " "; // visit it and all nodes
 				if (p->data == target)
 					return true;
 				p = stack.pop();
 			}
 
-			std::cout << p->data << " ";     // visit also the first node with
+			std::cout << p->data << " ";	// visit also the first node with
 
 			if (p->data == target)
 				return true;
 
-			if (!stack.empty())              // a right child (if any);
+			if (!stack.empty())		// a right child (if any);
 				p = stack.pop();
 			else
 				p = nullptr;
@@ -625,14 +694,14 @@ private:
 		if (node->left)
 			inOrder(node->left);
 
-//		std::cout << node->data << " ";
-
+		std::cout << node->data << " ";
+		/*
 		std::cout << node->data << "(";
 		if (node->parent)
 			std::cout << node->parent->data << ") ";
 		else
 		    std::cout << "x) ";
-
+		*/
 		if (node->right)
 			inOrder(node->right);
 	}
