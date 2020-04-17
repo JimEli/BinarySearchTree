@@ -1,3 +1,6 @@
+#ifndef SET_H
+#define SET_H
+
 #include "tree_with_parent.h"
 
 template <class T>
@@ -46,7 +49,7 @@ struct set : public tree<T>
 	}
 
 	template <typename T>
-	void set_difference(const set<T>& s, set<T>& result)
+	void set_symmetric_difference(const set<T>& s, set<T>& result)
 	{
 		if (this != &s)
 		{
@@ -73,8 +76,37 @@ struct set : public tree<T>
 				}
 			}
 
-			for (auto it = s2; it != s.end(); ++it)
-				result.insert(*it);
+			for (; s2 != s.end(); ++s2)
+				result.insert(*s2);
+		}
+	}
+
+	template <typename T>
+	void set_difference(const set<T>& s, set<T>& result)
+	{
+		if (this != &s)
+		{
+			auto s1 = this->begin();
+			auto s2 = s.begin();
+
+			while (s1 != this->end() && s2 != s.end())
+			{
+				if (*s1 < *s2)
+				{
+					result.insert(*s1);
+					++s1;
+				}
+				else if (*s2 < *s1)
+					++s2;
+				else
+				{
+					++s1;
+					++s2;
+				}
+			}
+
+			for (; s1 != this->end(); ++s1)
+				result.insert(*s1);
 		}
 	}
 
@@ -83,3 +115,5 @@ struct set : public tree<T>
 	T lowerBound() const { return *tree<T>::begin(); }
 	T upperBound() const { return *tree<T>::rbegin(); }
 };
+
+#endif
