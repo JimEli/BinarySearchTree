@@ -47,7 +47,7 @@ protected:
 	struct Node
 	{
 	private:
-		T data; 
+		T data;
 		std::shared_ptr<Node> left = nullptr;
 		std::shared_ptr<Node> right = nullptr;
 		std::shared_ptr<Node> parent = nullptr;
@@ -66,7 +66,7 @@ protected:
 
 public:
 	tree() : root(nullptr) { }
-	~tree() = default;
+	~tree() { clear(root); }
 
 	const tree<T>& operator= (const tree<T>& rhs)
 	{
@@ -547,6 +547,9 @@ private:
 	// Delete all nodes of tree.
 	void clear(std::shared_ptr<Node>& node)
 	{
+		if (!node)
+			return;
+
 		if (node->left)
 			clear(node->left);
 
@@ -657,29 +660,29 @@ private:
 		while (p != nullptr)
 		{
 			while (p != nullptr)
-			{				// stack the right child (if any)
-				if (p->right)		// and the node itself when going
-					stack.push(p->right); // to the left;
+			{                                // stack the right child (if any)
+				if (p->right)                // and the node itself when going
+					stack.push(p->right);    // to the left;
 				stack.push(p);
 				p = p->left;
 			}
 
-			p = stack.pop();		// pop a node with no left child
+			p = stack.pop();                 // pop a node with no left child
 
 			while (!stack.empty() && p->right == nullptr)
-			{				// with no right child;
+			{                                // with no right child;
 				std::cout << p->data << " "; // visit it and all nodes
 				if (p->data == target)
 					return true;
 				p = stack.pop();
 			}
 
-			std::cout << p->data << " ";	// visit also the first node with
+			std::cout << p->data << " ";     // visit also the first node with
 
 			if (p->data == target)
 				return true;
 
-			if (!stack.empty())		// a right child (if any);
+			if (!stack.empty())              // a right child (if any);
 				p = stack.pop();
 			else
 				p = nullptr;
