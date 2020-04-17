@@ -6,17 +6,19 @@
 template <class T>
 struct set : public tree<T>
 {
+	using base_iterator = typename tree<T>::iterator;
+
 	template <typename T>
 	void set_union(const set<T>& s, set<T>& result)
 	{
-		for (auto i = this->begin(); i != this->end(); ++i)
-			result.insert(*i);
+		for (base_iterator it = this->begin(); it != this->end(); ++it)
+			result.insert(*it);
 
 		if (this == &s)
 			return;
 
-		for (auto i = s.begin(); i != s.end(); ++i)
-			result.insert(*i);
+		for (base_iterator it = s.begin(); it != s.end(); ++it)
+			result.insert(*it);
 	}
 
 	template <typename T>
@@ -24,14 +26,13 @@ struct set : public tree<T>
 	{
 		if (this == &s)
 		{
-			for (auto it = this->begin(); it != this->end(); ++it)
+			for (base_iterator it = this->begin(); it != this->end(); ++it)
 				result.insert(*it);
 
 			return;
 		}
 
-		auto s1 = s.begin();
-		auto s2 = this->begin();
+		base_iterator s1 = s.begin(), s2 = this->begin();
 
 		while (s1 != s.end() && s2 != this->end())
 		{
@@ -54,8 +55,7 @@ struct set : public tree<T>
 		if (this != &s)
 		{
 
-			auto s1 = this->begin();
-			auto s2 = s.begin();
+			base_iterator s1 = this->begin(), s2 = s.begin();
 
 			while (s1 != this->end() && s2 != s.end())
 			{
@@ -86,8 +86,7 @@ struct set : public tree<T>
 	{
 		if (this != &s)
 		{
-			auto s1 = this->begin();
-			auto s2 = s.begin();
+			base_iterator s1 = this->begin(), s2 = s.begin();
 
 			while (s1 != this->end() && s2 != s.end())
 			{
@@ -110,6 +109,7 @@ struct set : public tree<T>
 		}
 	}
 
+	// Reject identical data.
 	void insert(const T data) { if (!tree<T>::search(data)) tree<T>::add(data); }
 
 	T lowerBound() const { return *tree<T>::begin(); }
