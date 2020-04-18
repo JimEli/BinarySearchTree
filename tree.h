@@ -51,7 +51,7 @@ private:
 
 public:
 	Tree() : root(nullptr) { }
-	~Tree() { clear(root); }
+	~Tree() { clear(); }
 
 	const Tree<T>& operator= (const Tree<T> &rhs)
 	{
