@@ -1,5 +1,5 @@
 /*************************************************************************
-* Title: Binary Search Tree with iterator.
+* Title: Binary Search Tree with iterators.
 * File: tree.h
 * Author: James Eli
 * Date: 10/26/2018
@@ -27,7 +27,8 @@
 *************************************************************************
 * Change Log:
 *  10/26/2018: Initial release. JME
-*  04/16/2020: Added parent link and iterators.  JME
+*  04/16/2020: Added parent link and iterators. JME
+*  04/19/2020: Separated node and iterators classes from tree class. JME
 *************************************************************************/
 #ifndef _MY_TREE_H_
 #define _MY_TREE_H_
@@ -45,24 +46,7 @@ template <class T>
 class tree
 {
 protected:
-	struct Node
-	{
-	private:
-		T data;
-		std::shared_ptr<Node> left = nullptr;
-		std::shared_ptr<Node> right = nullptr;
-		std::shared_ptr<Node> parent = nullptr;
-
-		// Return true if node is leaf.
-		bool isLeaf() const { return !left && !right; }
-
-	public:
-		explicit Node(T d) : data(d) { }
-		Node(std::shared_ptr<Node> p, T d) : parent(p), data(d) { }
-		~Node() = default;
-
-		template <typename T> friend class tree;
-	};
+	struct Node;
 
 public:
 	tree() : root(nullptr) { }
@@ -130,348 +114,10 @@ public:
 	//
 	// Iterators.
 	//
-	class iterator
-	{
-		friend class tree;
-
-	public:
-		typedef std::bidirectional_iterator_tag iterator_category;
-
-		iterator() { ptr = nullptr; }
-		iterator(std::shared_ptr<Node> p) { ptr = p; }
-		iterator(const iterator& it) { ptr = it.ptr; }
-
-		iterator& operator= (const iterator& it)
-		{
-			ptr = it.ptr;
-			return *this;
-		}
-
-		bool operator== (const iterator& it) const { return ptr == it.ptr; }
-		bool operator!= (const iterator& it) const { return ptr != it.ptr; }
-		bool operator< (const iterator& it) const { return **this < *it; }
-		bool operator> (const iterator& it) const { return **this > * it; }
-		bool operator<= (const iterator& it) const { return **this <= *it; }
-		bool operator>= (const iterator& it) const { return **this >= *it; }
-
-		// pre-increment
-		iterator& operator++ ()
-		{
-			if (ptr->right)
-			{
-				ptr = ptr->right;
-				while (ptr->left)
-					ptr = ptr->left;
-			}
-			else 
-			{
-				std::shared_ptr<Node> before;
-
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->right);
-			}
-			return *this;
-		}
-		// post-increment
-		iterator operator++ (int)
-		{
-			iterator old(*this);
-			++(*this);
-			return old;
-		}
-
-		// pre-decrement
-		iterator& operator-- ()
-		{
-			if (ptr->left)
-			{
-				ptr = ptr->left;
-				while (ptr->right) {
-					ptr = ptr->right;
-				}
-			}
-			else
-			{
-				std::shared_ptr<Node> before;
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->left);
-			}
-			return *this;
-		}
-		// post-decrement
-		iterator operator-- (int)
-		{
-			iterator old(*this);
-			--(*this);
-			return old;
-		}
-
-		T& operator* () const { return ptr->data; }
-		T* operator-> () const { return &(ptr->data); }
-		
-	private:
-		std::shared_ptr<Node> ptr;
-	};
-
-	class const_iterator
-	{
-	public:
-		typedef std::bidirectional_iterator_tag iterator_category;
-
-		const_iterator() { ptr = nullptr; }
-		const_iterator(const std::shared_ptr<Node> p) { ptr = p; }
-		const_iterator(const const_iterator& it) { ptr = it.ptr; }
-		const_iterator(const iterator& it) { ptr = it.ptr; }
-
-		const_iterator& operator= (const const_iterator& it)
-		{
-			ptr = it.ptr;
-			return *this;
-		}
-
-		bool operator== (const const_iterator& it) const { return ptr == it.ptr; }
-		bool operator!= (const const_iterator& it) const { return ptr != it.ptr; }
-		bool operator< (const const_iterator& it) const { return **this < *it; }
-		bool operator> (const const_iterator& it) const { return **this > * it; }
-		bool operator<= (const const_iterator& it) const { return **this <= *it; }
-		bool operator>= (const const_iterator& it) const { return **this >= *it; }
-
-		// pre-increment
-		const_iterator& operator++ ()
-		{
-			if (ptr->right)
-			{
-				ptr = ptr->right;
-				while (ptr->left) 
-					ptr = ptr->left;
-			}
-			else
-			{
-				std::shared_ptr<Node> before;
-
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->right);
-			}
-			return *this;
-		}
-		// post-increment
-		const_iterator operator++ (int)
-		{
-			const_iterator old(*this);
-			++(*this);
-			return old;
-		}
-
-		// pre-decrement
-		const_iterator& operator-- ()
-		{
-			if (ptr->left)
-			{
-				ptr = ptr->left;
-				while (ptr->right) {
-					ptr = ptr->right;
-				}
-			}
-			else
-			{
-				const std::shared_ptr<Node> before;
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->left);
-			}
-			return *this;
-		}
-		// post-decrement
-		const_iterator operator-- (int)
-		{
-			const_iterator old(*this);
-			--(*this);
-			return old;
-		}
-
-		const T& operator* () const { return (const T&)(ptr->data); }
-		const T* operator-> () const { return &(ptr->data); }
-
-	private:
-		std::shared_ptr<Node> ptr;
-	};
-
-	class reverse_iterator
-	{
-		friend class tree;
-
-	public:
-		reverse_iterator() { ptr = nullptr; }
-		reverse_iterator(std::shared_ptr<Node> p) { ptr = p; }
-		reverse_iterator(const reverse_iterator& it) { ptr = it.ptr; }
-
-		reverse_iterator& operator= (const reverse_iterator& it)
-		{
-			ptr = it.ptr;
-			return *this;
-		}
-
-		bool operator== (const reverse_iterator& it) const { return ptr == it.ptr; }
-		bool operator!= (const reverse_iterator& it) const { return ptr != it.ptr; }
-		bool operator< (const reverse_iterator& it) const { return **this > * it; }
-		bool operator> (const reverse_iterator& it) const { return **this < *it; }
-		bool operator<= (const reverse_iterator& it) const { return **this >= *it; }
-		bool operator>= (const reverse_iterator& it) const { return **this <= *it; }
-
-		// pre-increment
-		reverse_iterator& operator++ ()
-		{
-			if (ptr->left)
-			{
-				ptr = ptr->left;
-				while (ptr->right) {
-					ptr = ptr->right;
-				}
-			}
-			else
-			{
-				std::shared_ptr<Node> before;
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->left);
-			}
-			return *this;
-		}
-		// post-increment
-		reverse_iterator operator++ (int)
-		{
-			iterator old(*this);
-			--(*this);
-			return old;
-		}
-
-		// pre-decrement
-		reverse_iterator& operator-- ()
-		{
-			if (ptr->right)
-			{
-				ptr = ptr->right;
-				while (ptr->left)
-					ptr = ptr->left;
-			}
-			else
-			{
-				std::shared_ptr<Node> before;
-
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->right);
-			}
-			return *this;
-		}
-		// post-decrement
-		reverse_iterator operator-- (int)
-		{
-			reverse_iterator old(*this);
-			++(*this);
-			return old;
-		}
-
-		T& operator* () const { return ptr->data; }
-		T* operator-> () const { return &(ptr->data); }
-
-	private:
-		std::shared_ptr<Node> ptr;
-	};
-
-	class const_reverse_iterator
-	{
-		friend class tree;
-
-	public:
-		const_reverse_iterator() { ptr = nullptr; }
-		const_reverse_iterator(std::shared_ptr<Node> p) { ptr = p; }
-		const_reverse_iterator(const const_reverse_iterator& it) { ptr = it.ptr; }
-
-		const_reverse_iterator& operator= (const const_reverse_iterator& it)
-		{
-			ptr = it.ptr;
-			return *this;
-		}
-
-		bool operator== (const const_reverse_iterator& it) const { return ptr == it.ptr; }
-		bool operator!= (const const_reverse_iterator& it) const { return ptr != it.ptr; }
-		bool operator< (const const_reverse_iterator& it) const { return **this > * it; }
-		bool operator> (const const_reverse_iterator& it) const { return **this < *it; }
-		bool operator<= (const const_reverse_iterator& it) const { return **this >= *it; }
-		bool operator>= (const const_reverse_iterator& it) const { return **this <= *it; }
-
-		// pre-increment
-		const_reverse_iterator& operator++ ()
-		{
-			if (ptr->left)
-			{
-				ptr = ptr->left;
-				while (ptr->right) {
-					ptr = ptr->right;
-				}
-			}
-			else
-			{
-				std::shared_ptr<Node> before;
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->left);
-			}
-			return *this;
-		}
-		// post-increment
-		const_reverse_iterator operator++ (int)
-		{
-			const_reverse_iterator old(*this);
-			--(*this);
-			return old;
-		}
-
-		// pre-decrement
-		const_reverse_iterator& operator-- ()
-		{
-			if (ptr->right)
-			{
-				ptr = ptr->right;
-				while (ptr->left)
-					ptr = ptr->left;
-			}
-			else
-			{
-				std::shared_ptr<Node> before;
-
-				do {
-					before = ptr;
-					ptr = ptr->parent;
-				} while (ptr && before == ptr->right);
-			}
-			return *this;
-		}
-		// post-decrement
-		const_reverse_iterator operator-- (int)
-		{
-			const_reverse_iterator old(*this);
-			++(*this);
-			return old;
-		}
-
-		T& operator* () const { return ptr->data; }
-		T* operator-> () const { return &(ptr->data); }
-
-	private:
-		std::shared_ptr<Node> ptr;
-	};
+	class iterator;
+	class const_iterator;
+	class reverse_iterator;
+	class const_reverse_iterator;
 
 	iterator begin() 
 	{
@@ -908,6 +554,375 @@ private:
 		clear(root);
 		buildTree(data, 0, data.size() - 1);
 	}
+};
+
+template <typename T>
+struct tree<T>::Node
+{
+private:
+	T data;
+	std::shared_ptr<Node> left = nullptr;
+	std::shared_ptr<Node> right = nullptr;
+	std::shared_ptr<Node> parent = nullptr;
+
+	// Return true if node is leaf.
+	bool isLeaf() const { return !left && !right; }
+
+public:
+	explicit Node(T d) : data(d) { }
+	Node(std::shared_ptr<Node> p, T d) : parent(p), data(d) { }
+	~Node() = default;
+
+	template <typename T> friend class tree;
+};
+
+template <typename T>
+class tree<T>::iterator
+{
+	template <typename T> friend class tree;
+
+public:
+	typedef std::bidirectional_iterator_tag iterator_category;
+
+	iterator() { ptr = nullptr; }
+	iterator(std::shared_ptr<Node> p) { ptr = p; }
+	iterator(const iterator& it) { ptr = it.ptr; }
+
+	iterator& operator= (const iterator& it)
+	{
+		ptr = it.ptr;
+		return *this;
+	}
+
+	bool operator== (const iterator& it) const { return ptr == it.ptr; }
+	bool operator!= (const iterator& it) const { return ptr != it.ptr; }
+	bool operator< (const iterator& it) const { return **this < *it; }
+	bool operator> (const iterator& it) const { return **this > * it; }
+	bool operator<= (const iterator& it) const { return **this <= *it; }
+	bool operator>= (const iterator& it) const { return **this >= *it; }
+
+	// pre-increment
+	iterator& operator++ ()
+	{
+		if (ptr->right)
+		{
+			ptr = ptr->right;
+			while (ptr->left)
+				ptr = ptr->left;
+		}
+		else
+		{
+			std::shared_ptr<Node> before;
+
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->right);
+		}
+		return *this;
+	}
+	// post-increment
+	iterator operator++ (int)
+	{
+		iterator old(*this);
+		++(*this);
+		return old;
+	}
+
+	// pre-decrement
+	iterator& operator-- ()
+	{
+		if (ptr->left)
+		{
+			ptr = ptr->left;
+			while (ptr->right) {
+				ptr = ptr->right;
+			}
+		}
+		else
+		{
+			std::shared_ptr<Node> before;
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->left);
+		}
+		return *this;
+	}
+	// post-decrement
+	iterator operator-- (int)
+	{
+		iterator old(*this);
+		--(*this);
+		return old;
+	}
+
+	T& operator* () const { return ptr->data; }
+	T* operator-> () const { return &(ptr->data); }
+
+private:
+	std::shared_ptr<Node> ptr;
+};
+
+template <typename T>
+class tree<T>::const_iterator
+{
+	template <typename T> friend class tree;
+
+public:
+	typedef std::bidirectional_iterator_tag iterator_category;
+
+	const_iterator() { ptr = nullptr; }
+	const_iterator(const std::shared_ptr<Node> p) { ptr = p; }
+	const_iterator(const const_iterator& it) { ptr = it.ptr; }
+	const_iterator(const iterator& it) { ptr = it.ptr; }
+
+	const_iterator& operator= (const const_iterator& it)
+	{
+		ptr = it.ptr;
+		return *this;
+	}
+
+	bool operator== (const const_iterator& it) const { return ptr == it.ptr; }
+	bool operator!= (const const_iterator& it) const { return ptr != it.ptr; }
+	bool operator< (const const_iterator& it) const { return **this < *it; }
+	bool operator> (const const_iterator& it) const { return **this > * it; }
+	bool operator<= (const const_iterator& it) const { return **this <= *it; }
+	bool operator>= (const const_iterator& it) const { return **this >= *it; }
+
+	// pre-increment
+	const_iterator& operator++ ()
+	{
+		if (ptr->right)
+		{
+			ptr = ptr->right;
+			while (ptr->left)
+				ptr = ptr->left;
+		}
+		else
+		{
+			std::shared_ptr<Node> before;
+
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->right);
+		}
+		return *this;
+	}
+	// post-increment
+	const_iterator operator++ (int)
+	{
+		const_iterator old(*this);
+		++(*this);
+		return old;
+	}
+
+	// pre-decrement
+	const_iterator& operator-- ()
+	{
+		if (ptr->left)
+		{
+			ptr = ptr->left;
+			while (ptr->right) {
+				ptr = ptr->right;
+			}
+		}
+		else
+		{
+			const std::shared_ptr<Node> before;
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->left);
+		}
+		return *this;
+	}
+	// post-decrement
+	const_iterator operator-- (int)
+	{
+		const_iterator old(*this);
+		--(*this);
+		return old;
+	}
+
+	const T& operator* () const { return (const T&)(ptr->data); }
+	const T* operator-> () const { return &(ptr->data); }
+
+private:
+	std::shared_ptr<Node> ptr;
+};
+
+template <typename T>
+class tree<T>::reverse_iterator
+{
+	template <typename T> friend class tree;
+
+public:
+	reverse_iterator() { ptr = nullptr; }
+	reverse_iterator(std::shared_ptr<Node> p) { ptr = p; }
+	reverse_iterator(const reverse_iterator& it) { ptr = it.ptr; }
+
+	reverse_iterator& operator= (const reverse_iterator& it)
+	{
+		ptr = it.ptr;
+		return *this;
+	}
+
+	bool operator== (const reverse_iterator& it) const { return ptr == it.ptr; }
+	bool operator!= (const reverse_iterator& it) const { return ptr != it.ptr; }
+	bool operator< (const reverse_iterator& it) const { return **this > * it; }
+	bool operator> (const reverse_iterator& it) const { return **this < *it; }
+	bool operator<= (const reverse_iterator& it) const { return **this >= *it; }
+	bool operator>= (const reverse_iterator& it) const { return **this <= *it; }
+
+	// pre-increment
+	reverse_iterator& operator++ ()
+	{
+		if (ptr->left)
+		{
+			ptr = ptr->left;
+			while (ptr->right) {
+				ptr = ptr->right;
+			}
+		}
+		else
+		{
+			std::shared_ptr<Node> before;
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->left);
+		}
+		return *this;
+	}
+	// post-increment
+	reverse_iterator operator++ (int)
+	{
+		iterator old(*this);
+		--(*this);
+		return old;
+	}
+
+	// pre-decrement
+	reverse_iterator& operator-- ()
+	{
+		if (ptr->right)
+		{
+			ptr = ptr->right;
+			while (ptr->left)
+				ptr = ptr->left;
+		}
+		else
+		{
+			std::shared_ptr<Node> before;
+
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->right);
+		}
+		return *this;
+	}
+	// post-decrement
+	reverse_iterator operator-- (int)
+	{
+		reverse_iterator old(*this);
+		++(*this);
+		return old;
+	}
+
+	T& operator* () const { return ptr->data; }
+	T* operator-> () const { return &(ptr->data); }
+
+private:
+	std::shared_ptr<Node> ptr;
+};
+
+template <typename T>
+class tree<T>::const_reverse_iterator
+{
+	template <typename T> friend class tree;
+
+public:
+	const_reverse_iterator() { ptr = nullptr; }
+	const_reverse_iterator(std::shared_ptr<Node> p) { ptr = p; }
+	const_reverse_iterator(const const_reverse_iterator& it) { ptr = it.ptr; }
+
+	const_reverse_iterator& operator= (const const_reverse_iterator& it)
+	{
+		ptr = it.ptr;
+		return *this;
+	}
+
+	bool operator== (const const_reverse_iterator& it) const { return ptr == it.ptr; }
+	bool operator!= (const const_reverse_iterator& it) const { return ptr != it.ptr; }
+	bool operator< (const const_reverse_iterator& it) const { return **this > * it; }
+	bool operator> (const const_reverse_iterator& it) const { return **this < *it; }
+	bool operator<= (const const_reverse_iterator& it) const { return **this >= *it; }
+	bool operator>= (const const_reverse_iterator& it) const { return **this <= *it; }
+
+	// pre-increment
+	const_reverse_iterator& operator++ ()
+	{
+		if (ptr->left)
+		{
+			ptr = ptr->left;
+			while (ptr->right) {
+				ptr = ptr->right;
+			}
+		}
+		else
+		{
+			std::shared_ptr<Node> before;
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->left);
+		}
+		return *this;
+	}
+	// post-increment
+	const_reverse_iterator operator++ (int)
+	{
+		const_reverse_iterator old(*this);
+		--(*this);
+		return old;
+	}
+
+	// pre-decrement
+	const_reverse_iterator& operator-- ()
+	{
+		if (ptr->right)
+		{
+			ptr = ptr->right;
+			while (ptr->left)
+				ptr = ptr->left;
+		}
+		else
+		{
+			std::shared_ptr<Node> before;
+
+			do {
+				before = ptr;
+				ptr = ptr->parent;
+			} while (ptr && before == ptr->right);
+		}
+		return *this;
+	}
+	// post-decrement
+	const_reverse_iterator operator-- (int)
+	{
+		const_reverse_iterator old(*this);
+		++(*this);
+		return old;
+	}
+
+	T& operator* () const { return ptr->data; }
+	T* operator-> () const { return &(ptr->data); }
+
+private:
+	std::shared_ptr<Node> ptr;
 };
 
 #endif
