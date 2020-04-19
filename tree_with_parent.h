@@ -39,6 +39,7 @@
 #include "queue.h"   // bfs traversal.
 #include "stack.h"   // iterative in-order search.
 #include "vector.h"  // vector for building balanced tree.
+//#include <vector>
 
 template <class T>
 class tree
@@ -60,8 +61,7 @@ protected:
 		Node(std::shared_ptr<Node> p, T d) : parent(p), data(d) { }
 		~Node() = default;
 
-		template <typename T>
-		friend class tree;
+		template <typename T> friend class tree;
 	};
 
 public:
@@ -492,7 +492,7 @@ public:
 		return iterator(ptr);
 	}
 	const_iterator cbegin() const { return begin(); }
-	reverse_iterator rbegin() const
+	reverse_iterator rbegin()
 	{
 		std::shared_ptr<Node> ptr = root;
 
@@ -500,6 +500,15 @@ public:
 			ptr = ptr->right;
 
 		return reverse_iterator(ptr);
+	}
+	const_reverse_iterator rbegin() const
+	{
+		std::shared_ptr<Node> ptr = root;
+
+		while (ptr->right)
+			ptr = ptr->right;
+
+		return const_reverse_iterator(ptr);
 	}
 
 	iterator end()
@@ -529,6 +538,15 @@ public:
 			ptr = ptr->left;
 
 		return reverse_iterator(ptr->left);
+	}
+	const_reverse_iterator rend() const
+	{
+		std::shared_ptr<Node> ptr = root;
+
+		while (ptr->left)
+			ptr = ptr->left;
+
+		return const_reverse_iterator(ptr->left);
 	}
 
 protected:
@@ -574,7 +592,7 @@ private:
 		if (!node)
 			return 0;
 		else
-			return(size(node->left) + 1 + size(node->right));
+			return 1 + size(node->left) + size(node->right);
 	}
 
 	// Return minimum value of either child nodes.
@@ -698,13 +716,13 @@ private:
 			inOrder(node->left);
 
 		std::cout << node->data << " ";
-		/*
+#ifdef _DEBUG
 		std::cout << node->data << "(";
 		if (node->parent)
 			std::cout << node->parent->data << ") ";
 		else
 		    std::cout << "x) ";
-		*/
+#endif
 		if (node->right)
 			inOrder(node->right);
 	}
@@ -852,7 +870,7 @@ private:
 	}
 
 	// Balance tree helper method, builds tree from (sorted) array of data elements.
-	void buildTree(Vector<T>& data, int start, int end)
+	void buildTree(vector<T>& data, int start, int end)
 	{
 		if (start <= end)
 		{
@@ -866,7 +884,7 @@ private:
 	}
 
 	// Balance tree helper method, constructs sorted array of tree data via inOrder traversal.
-	void makeArray(std::shared_ptr<Node> node, Vector<T>& data)
+	void makeArray(std::shared_ptr<Node> node, vector<T>& data)
 	{
 		// Base case.
 		if (!node)
@@ -882,7 +900,8 @@ private:
 	void balanceTree(std::shared_ptr<Node> node)
 	{
 		// Store nodes in sorted order.
-		Vector<T> data;
+		vector<T> data;
+		data.reserve(size());
 		makeArray(node, data);
 
 		// Reconstruct a balanced tree.
